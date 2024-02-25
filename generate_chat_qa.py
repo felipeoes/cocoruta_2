@@ -10,14 +10,12 @@ HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
 if __name__ == "__main__":
     dataset_name = 'felipeoes/br_federal_legislation'
     
-    generator = GeminiChatQAGenerator(dataset_name)
-    result = generator.run(sample=10) # sample = 10 for testing purposes
+    generator = GeminiChatQAGenerator(dataset_name, verbose=True, num_api_keys=6) # there will be allocated 20 workers per API key
+    result = generator.run(start=0)
     
-    # first 10 examples
+    # first 3 examples
     print(result)
-    print(result[:10])
+    print(result[:3])
     
     # upload the result to the Hugging Face model hub
     result.push_to_hub('felipeoes/br_federal_legislation_qa', token=HUGGINGFACE_TOKEN)
-     
-     
