@@ -35,10 +35,11 @@ class DatasetLoader:
     def get_rows(self) -> list[dict]:
         """ Returns the rows of the dataset. """
         return self._dataset[self.split].to_list()
-    
+
     def get_titles(self) -> list[str]:
         """ Returns the titles of the dataset. """
         return self._dataset[self.split]['title']
+
 
 class DatasetBuilder:
     """ Class to build a Hugging Face dataset. It is used to create a dataset based on chat QA generated data and have the capability to resume the process if it is interrupted. """
@@ -59,29 +60,30 @@ class DatasetBuilder:
 
     def get_titles(self) -> list[str]:
         """ Returns the titles of the dataset. """
-        return self._dataset['title'] if self._dataset is not None else []
-    
+        return self._dataset['title'].to_list() if self._dataset is not None else []
+
     def get_rows(self) -> list[dict]:
         """ Returns the rows of the dataset. """
         return self._dataset.to_dict('records') if self._dataset is not None else []
+    
+    def get_texts(self) -> list[str]:
+        """ Returns the texts of the dataset. """
+        return self._dataset['text'].to_list() if self._dataset is not None else []
+        
 
     def _resume_process(self):
         """ Resumes the process if there is a dataset already created. """
         output_path = Path(str(self.output_dir) + '.csv')
         if output_path.exists():
             self._dataset = pd.read_csv(
-                output_path)
+                output_path,on_bad_lines='skip', lineterminator='\n')
+            
+            print(f"Resuming process with {len(self._dataset)} rows.")
         else:
             self._dataset = None
 
     def save(self):
         """ Saves the dataset to the output directory. """
-        # delete the directory if it exists
-        if self.output_dir.exists():
-            shutil.rmtree(self.output_dir, ignore_errors=True)
-        else:
-            self.output_dir.mkdir(parents=True, exist_ok=True)
-
         self._dataset.to_csv(
             Path(str(self.output_dir) + '.csv'), index=False)
 
@@ -95,3 +97,4 @@ class DatasetBuilder:
     def get_hf_dataset(self) -> Dataset:
         """ Returns the dataset in Hugging Face format. """
         return Dataset.from_pandas(self._dataset)
+         
